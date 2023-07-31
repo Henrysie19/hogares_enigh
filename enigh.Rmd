@@ -1,0 +1,194 @@
+---
+title: "Ingresos y Gastos de los Hogares en México"
+author: "Henry Sierra"
+date: "2023-07-30"
+output:
+  html_document: 
+    fig_height: 7
+    fig_width: 10
+    highlight: tango
+    keep_md: yes
+    number_sections: yes
+    theme: cerulean
+    toc: yes
+    toc_depth: 4
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '4'
+  word_document:
+    toc: yes
+    toc_depth: '4'
+editor_options:
+  
+  
+  chunk_output_type: console
+---
+
+<style>
+body {
+text-align: justify}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+packages<-c("pander","kableExtra","magrittr")
+sapply(packages,require,character.only=TRUE)
+
+library(readxl)
+library(readxlsb)
+library(tidyverse)
+library(pander)
+library(ggplot2)
+
+# Directorio
+setwd("C:/Users/ASUS/OneDrive/Documentos/myrepo/hogres_enigh")
+
+#Leer el archivo
+enigh<-read_xlsx("hogares_enigh.xlsx")
+
+```
+
+Para este ejercicio, estaremos trabajando con la data Hogares_enight (Encuesta Nacional de Ocupación y Empleo de México 2019) Realizando un pequeño analisis exploratorio de los datos:
+
+## DATA
+
+```{r enigh, echo=TRUE}
+enigh%>%head()%>%pander() 
+```
+
+```{r code, include=FALSE}
+
+enigh$ing_cor<-as.numeric(enigh$ing_cor)
+enigh$alimentos<-as.numeric(enigh$alimentos)
+enigh$salud<-as.numeric(enigh$salud)
+enigh$est_socio<-as.numeric(enigh$est_socio)
+enigh$sexo_jefe<-as.factor(enigh$sexo_jefe)
+enigh$est_socio<-as.factor(enigh$est_socio)
+
+enigh<- mutate(enigh, ingreso_per_capita = ing_cor/tot_integ)
+
+enigh<-mutate(enigh, ln_ipc =log(ingreso_per_capita))
+enigh<-mutate(enigh, ln_salud =log(salud))
+enigh<-mutate(enigh, ln_alimentos =log(alimentos))
+
+enigh<-filter(enigh, salud!=0)
+enigh<-filter(enigh, ing_cor!=0)
+enigh<-filter(enigh, alimentos!=0)
+```
+
+## PLOTS
+Iniciamos generando un grafica de barras para identificar el tamaño de cada uno de estos estratos socioeconomicos
+
+```{r est_socio, echo=TRUE}
+ggplot(data = enigh, aes(x = est_socio, fill = as.factor(est_socio))) + 
+  geom_bar() + 
+  xlab("Estratos Socioeconomico") + 
+  ylab("Cantidades") + 
+  ggtitle("Gráfico de Barras") +
+  labs(fill = "Estratos") + 
+  theme_minimal()
+```
+
+Claramente identificamos que el estrato numero 2 muestra una gran diferencia entre los demás estratos, siendo este el más significativo entre los hogares mexicanos 
+
+Posteriormente elaboramos los histogramas de los datos que usaremos (salud, alimentos, IPC) con la categoría de los estratos socioeconómicos
+
+```{r histograma_Salud, echo=TRUE}
+ggplot(enigh) +
+  geom_histogram(bins = 50,
+                 aes(x = ln_salud, fill = est_socio),
+                 color = 'black') +
+  xlab("Estratos Socioeconomico") +
+  ylab("Frecuencia") +
+  ggtitle("Distribución de la variable Salud") +
+theme_minimal()
+```
+
+Para los gastos en salud podemos identificar que los estratos 1 y 2 com se encuentran agrupados un poco mas a la derecha, esto quiere decir que hay una asimetría positiva que ellos pueden destinar un mayor gasto en salud, lo que no sería extraño
+que para todos los estratos muestran una centralidad similar y una distribución normal 
+
+```{r histograma_aliemtos, echo=TRUE}
+ggplot(enigh) +
+  geom_histogram(bins = 50,
+                 aes(x = ln_alimentos, fill = est_socio),
+                 color = 'black') +
+  xlab("Estratos Socioeconomico") +
+  ylab("Frecuencia") +
+  ggtitle("Distribución de la variable Alimentos") +
+  theme_minimal()
+```
+
+El hecho de que los datos se agrupen hacia la derecha indica que existe una asimetría positiva o un sesgo hacia la derecha en la distribución de los gastos en alimentos. En otras palabras, hay una mayor concentración de hogares con gastos más altos en alimentos en los estratos de mayor nivel socioeconómico, mientras que los hogares con gastos más bajos tienden a ubicarse en los estratos de menor nivel socioeconómico.
+
+```{r histograma_IPC, echo=TRUE}
+ggplot(enigh) +
+  geom_histogram(bins = 50,
+                 aes(x = ln_ipc, fill = est_socio),
+                 color = 'black') +
+  xlab("Carat") +
+  ylab("Frecuencia") +
+  ggtitle("Distribución de la variable IPC") +
+  theme_minimal()
+```
+
+Cuando en el histograma los estratos 1 y 2 están agrupados más hacia la izquierda y los estratos 3 y 4 están agrupados hacia la derecha, esto indica que hay una diferenciación clara en la distribución de la variable según los diferentes estratos socioeconómicos.
+
+Claramente esto nos indica que los estratos 1 y 2 tienen en promedio ingresos más bajos, mientras que los estratos 3 y 4 tienen ingresos más altos.
+
+realizamos un resumen estadistico de la data que usaremos (salud, alimentos, ingreso_per_capita)
+
+
+```{r pander, echo=FALSE}
+summary(enigh[c('salud', 'alimentos', 'ingreso_per_capita')])%>%pander() 
+```
+
+Observando los datos proporcionados, podemos realizar el siguiente análisis de las variables "salud", "alimentos" e "ingreso per cápita"
+
+Al observar los valores mínimos, máximos y cuartiles de las tres variables, podemos notar que hay una amplia dispersión en los datos. Por ejemplo, en la variable "salud", los valores oscilan entre 2.0 y 489697.8, lo que sugiere que existen observaciones con diferencias significativas en gastos en salud. Lo mismo se aplica a las otras dos variables.
+
+La mediana (representada por "Median") proporciona una medida de tendencia central que se encuentra en el punto medio de los datos. Por ejemplo, en la variable "alimentos", la mediana es de aproximadamente 10072.9, lo que significa que la mitad de las observaciones están por encima de este valor y la otra mitad por debajo.
+
+Si comparamos las medias (representadas por "Mean") con las medianas, podemos tener una idea de si las distribuciones son simétricas o sesgadas. Por ejemplo, en la variable "salud", la media es de aproximadamente 1845.2, mientras que la mediana es de 489.1. Esta diferencia indica que la distribución está sesgada hacia la derecha, ya que la media es más alta que la mediana, asi como lo pudimos ver en el histograma.
+
+Observando los valores máximos, podemos notar la presencia de posibles valores atípicos o extremadamente altos. Por ejemplo, en la variable "ingreso per cápita", el valor máximo es de 1125728.0, que es considerablemente más alto que el tercer cuartil.
+
+
+
+## Graficas de Correlaciones Lineales
+
+Ingreso Per Capita / Gastos en Alimentos, distribuidos por estratos
+
+```{r echo=FALSE, out.width="100%"}
+knitr::include_graphics("ipc-alimentos.png", error = FALSE)
+```
+
+A simple vista no podemos observar que exista una relación muy clara entre el IPC y los gastos en alimentos pero, de lo que si podemos observar, es que los estratos más bajos ganan menos dinero y de cierta manera pueden tener los mismos gastos en alimentos que los estratos más altos, solo en ciertos gasto.
+
+Sería lógico mencionar que a mayor IPC mayores gastos en salud.
+
+Ingreso Per Capita / Gastos en Salud, distribuidos por estratos
+
+```{r echo=FALSE, out.width="100%"}
+knitr::include_graphics("ipc-salud.png", error = FALSE)
+```
+
+Nota = Al graficar podemos ver a simple vista que existe de alguna manera 
+una correlación lineal entre el Estrato y los gastos en salus. idenficando que, a mayor estrato, tendrían mas dinero para gastar en salud, pero esto no se sabe con exactitud hasta tener 
+resumen de los datos.Para esto realizaremos un modelo linear o LinearModel
+
+```{r Linear Model, echo=TRUE}
+modelos<- lm(enigh$ln_salud ~ enigh$ln_ipc + enigh$ln_alimentos)
+summary(modelos)%>%pander()
+```
+
+En conclusión, el análisis de regresión realizado muestra que existe una relación significativa entre el gasto en salud (ln_salud) y del índice de precios al consumidor (ln_ipc) y del gasto en alimentos (ln_alimentos) en la muestra de datos del Estudio Nacional de Ingresos y Gastos de los Hogares (ENIGH). Los coeficientes estimados indican que tanto el índice de precios al consumidor como el gasto en alimentos tienen un impacto positivo en el gasto en salud.
+
+El valor del coeficiente de determinación ajustado (Adjusted R-squared) es de aproximadamente 0.082, lo que sugiere que alrededor del 8.2% de la variabilidad en el gasto en salud puede ser explicada por las variables independientes utilizadas en el modelo.
+
+Cabe destacar que el coeficiente estimado para el intercepto es negativo y significativo estadísticamente, lo que indica que, en ausencia de los predictores, el gasto en salud sería menor que cero. Sin embargo, debido a la naturaleza de los datos y la interpretación de los logaritmos, este valor no tiene una interpretación práctica directa.
+
+En general, el modelo de regresión puede ser útil para comprender cómo el índice de precios al consumidor y el gasto en alimentos influyen en el gasto en salud de los hogares. No obstante, dada la relativamente baja magnitud del coeficiente de determinación ajustado, es probable que haya otros factores y variables no considerados en el modelo que también afecten el gasto en salud de manera significativa. Por lo tanto, se recomienda realizar un análisis más completo e incluir más variables para obtener una comprensión más completa de los determinantes del gasto en salud en esta población.

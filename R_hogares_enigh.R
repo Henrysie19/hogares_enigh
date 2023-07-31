@@ -47,7 +47,7 @@ summary(enigh[c('salud', 'alimentos', 'ingreso_per_capita')])
 # summarise
 
 sexo<-group_by(enigh, sexo_jefe)
-summarise(sexo, mean(ing_cor), median(ing_cor))
+summarise(sexo, mean(ingreso_per_capita), median(ingreso_per_capita))
 
 
 ##Logramos identificar que los hombres tienen mejor salario
@@ -190,10 +190,6 @@ Multiple R-squared:  0.08214,	Adjusted R-squared:  0.08202
 F-statistic:   670 on 2 and 14974 DF,  p-value: < 2.2e-16
 
 ##Solo aumentamos muy poco el Rcuadradro/R-square agregandole la los datos de alimentos
-
-
-
-
 
 
 
