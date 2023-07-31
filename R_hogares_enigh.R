@@ -53,7 +53,17 @@ summarise(sexo, mean(ingreso_per_capita), median(ingreso_per_capita))
 ##Logramos identificar que los hombres tienen mejor salario
 
 ##Graficas
-##Iniciamos con los histogramas de los datos que usaremos (salud, alimentos, ipc),
+##Iniciamos generando un grafica de barras para saber las cantidades de los estratos socioeconomicos
+
+ggplot(data = enigh, aes(x = est_socio, fill = as.factor(est_socio))) + 
+  geom_bar() + 
+  xlab("Estratos Socioeconomico") + 
+  ylab("Cantidades") + 
+  ggtitle("Gráfico de Barras") +
+  labs(fill = "Estratos") + 
+  theme_minimal()
+
+##Posteriormente los histogramas de los datos que usaremos (salud, alimentos, ipc),
 ##con esta información podemos visualizar el la forma de nuestros datos y saber
 ##cual es el centro de nuestros datos, como tambíen saber su distribuccion
 
@@ -66,9 +76,6 @@ ggplot(enigh) +
   ggtitle("Distribución de Gastos en Salud") +
   theme_minimal()
 
-hist(enigh$ln_salud, main = "Histograma de Edad", 
-     xlab = "Edad", ylab = "Frecuencia",
-     col = "purple")
 ##Histograma de Gastos en Alimentos distribuidos por sexo
 ggplot(enigh) + 
   geom_histogram(bins = 50, aes(x = ln_alimentos, fill = est_socio), color = 'black') + 
@@ -192,7 +199,9 @@ F-statistic:   670 on 2 and 14974 DF,  p-value: < 2.2e-16
 ##Solo aumentamos muy poco el Rcuadradro/R-square agregandole la los datos de alimentos
 
 
-
+install.packages("rmarkdown")
+install.packages("knitr")
+install.packages("grDevices")
 
             
 
