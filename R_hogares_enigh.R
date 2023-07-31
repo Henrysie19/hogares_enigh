@@ -129,7 +129,7 @@ ggplot(data=enigh) +
 ggplot(data=enigh) +
   geom_point(mapping = aes(x=ln_ipc, y=ln_salud, color = est_socio)) +
   xlab("Estrato Socioeconomico") +
-  ylab("Gastos en Alimentos") +
+  ylab("Gastos en Salud") +
   ggtitle("Gráfico de Correlacion") +
   theme_minimal()
 
